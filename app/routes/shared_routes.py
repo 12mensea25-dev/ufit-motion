@@ -71,6 +71,7 @@ def debug_db():
     import traceback
     connection = get_db()
     try:
+        from flask import current_app
         cfg = current_app.config["UFIT_CONFIG"]
         backend = "postgres" if cfg.DATABASE_URL else "sqlite"
         counts = {}
