@@ -65,6 +65,28 @@ def bootstrap():
         return jsonify({"error": tb}), 500
 
 
+@shared_bp.route("/api/debug-db")
+@login_required
+def debug_db():
+    import traceback
+    connection = get_db()
+    try:
+        cfg = current_app.config["UFIT_CONFIG"]
+        backend = "postgres" if cfg.DATABASE_URL else "sqlite"
+        counts = {}
+        for table in ["schools", "grades", "skills", "users", "pe_sessions", "eod_reports", "incidents"]:
+            try:
+                row = connection.execute(f"SELECT COUNT(*) AS c FROM {table}").fetchone()
+                counts[table] = row["c"]
+            except Exception as e:
+                counts[table] = f"ERROR: {e}"
+        return jsonify({"backend": backend, "counts": counts})
+    except Exception:
+        return jsonify({"error": traceback.format_exc()}), 500
+    finally:
+        connection.close()
+
+
 @shared_bp.route("/api/alerts/dismiss/<int:alert_id>", methods=["POST"])
 @roles_required("admin")
 def dismiss_alert(alert_id):
