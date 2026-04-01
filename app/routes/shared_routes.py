@@ -50,12 +50,16 @@ def public_options():
 def bootstrap():
     from flask import request
     from app.routes._helpers import bootstrap_payload
-    user = current_user()
-    school_id = None
-    if dict(user).get("role") == "admin":
-        school_id_param = request.args.get("school_id")
-        school_id = int(school_id_param) if school_id_param and school_id_param.isdigit() else None
-    return jsonify(bootstrap_payload(user, admin_school_filter=school_id))
+    import traceback
+    try:
+        user = current_user()
+        school_id = None
+        if dict(user).get("role") == "admin":
+            school_id_param = request.args.get("school_id")
+            school_id = int(school_id_param) if school_id_param and school_id_param.isdigit() else None
+        return jsonify(bootstrap_payload(user, admin_school_filter=school_id))
+    except Exception as e:
+        return jsonify({"error": str(e), "trace": traceback.format_exc()}), 500
 
 
 @shared_bp.route("/api/alerts/dismiss/<int:alert_id>", methods=["POST"])
