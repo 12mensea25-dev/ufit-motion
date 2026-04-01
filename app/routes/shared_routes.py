@@ -48,6 +48,7 @@ def public_options():
 @shared_bp.route("/api/bootstrap")
 @login_required
 def bootstrap():
+    import traceback
     from flask import request
     from app.routes._helpers import bootstrap_payload
     user = current_user()
@@ -55,7 +56,10 @@ def bootstrap():
     if dict(user).get("role") == "admin":
         school_id_param = request.args.get("school_id")
         school_id = int(school_id_param) if school_id_param and school_id_param.isdigit() else None
-    return jsonify(bootstrap_payload(user, admin_school_filter=school_id))
+    try:
+        return jsonify(bootstrap_payload(user, admin_school_filter=school_id))
+    except Exception:
+        return jsonify({"error": traceback.format_exc()}), 500
 
 
 @shared_bp.route("/api/alerts/dismiss/<int:alert_id>", methods=["POST"])
