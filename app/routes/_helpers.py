@@ -260,7 +260,7 @@ def bootstrap_payload(user):
             "eodReports": eod_reports,
             "incidents": incidents,
             "alerts": alerts,
-            "performance": performance,
+            "performanceRows": performance,
         }
     finally:
         connection.close()
