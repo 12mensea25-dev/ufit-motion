@@ -29,47 +29,43 @@ class QueryResult:
         return self._rows
 
 
-def _supabase_pooler_dsn(dsn):
+def _supabase_pooler_dsns(dsn):
     """
-    Convert a Supabase direct connection URL to a Session Pooler URL.
-    Pooler endpoints are IPv4-reachable; direct endpoints resolve to IPv6 on some hosts.
+    Yield candidate Session Pooler URLs for each AWS region.
+    Pooler endpoints are IPv4-reachable; direct db.*.supabase.co resolves to IPv6.
     """
     parsed = urlparse(dsn)
     hostname = parsed.hostname or ""
     parts = hostname.split(".")
-    # Only applies to URLs like db.{ref}.supabase.co
     if not (len(parts) >= 4 and parts[0] == "db" and "supabase" in parts):
-        return None
+        return
     project_ref = parts[1]
     password = parsed.password or ""
-    # Try pooler regions in order of likelihood
     for region in ("us-east-1", "us-west-1", "us-west-2", "eu-west-1",
                    "eu-central-1", "ap-southeast-1", "ap-northeast-1"):
         pooler_host = f"aws-0-{region}.pooler.supabase.com"
-        try:
-            socket.getaddrinfo(pooler_host, 6543, socket.AF_INET)
-            user = f"postgres.{project_ref}"
-            new_netloc = f"{user}:{password}@{pooler_host}:6543"
-            new_dsn = urlunparse(parsed._replace(netloc=new_netloc))
-            if "sslmode" not in new_dsn:
-                new_dsn += "?sslmode=require"
-            return new_dsn
-        except OSError:
-            continue
-    return None
+        user = f"postgres.{project_ref}"
+        new_netloc = f"{user}:{password}@{pooler_host}:6543"
+        candidate = urlunparse(parsed._replace(netloc=new_netloc))
+        if "sslmode" not in candidate:
+            candidate += "?sslmode=require"
+        yield candidate
 
 
 class PostgresConnection:
     def __init__(self, dsn):
         self.backend = "postgres"
-        pooler = _supabase_pooler_dsn(dsn)
+        last_exc = None
+        for candidate in _supabase_pooler_dsns(dsn):
+            try:
+                self._connection = psycopg.connect(candidate, row_factory=dict_row)
+                return
+            except Exception as e:
+                last_exc = e
         try:
-            self._connection = psycopg.connect(pooler or dsn, row_factory=dict_row)
-        except Exception:
-            if pooler:
-                self._connection = psycopg.connect(dsn, row_factory=dict_row)
-            else:
-                raise
+            self._connection = psycopg.connect(dsn, row_factory=dict_row)
+        except Exception as e:
+            raise last_exc or e
 
     def execute(self, query, params=None):
         params = () if params is None else params
