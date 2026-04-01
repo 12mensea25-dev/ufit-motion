@@ -1,6 +1,8 @@
 import os
 import re
+import socket
 import sqlite3
+from urllib.parse import urlparse, urlunparse
 
 try:
     import psycopg
@@ -27,10 +29,34 @@ class QueryResult:
         return self._rows
 
 
+def _force_ipv4_dsn(dsn):
+    """Resolve hostname to IPv4 to avoid hosts that only have IPv6 reachability."""
+    try:
+        parsed = urlparse(dsn)
+        hostname = parsed.hostname
+        ipv4_results = socket.getaddrinfo(hostname, None, socket.AF_INET)
+        ipv4 = ipv4_results[0][4][0]
+        port = parsed.port or 5432
+        userinfo = ""
+        if parsed.username:
+            userinfo = parsed.username
+            if parsed.password:
+                userinfo += f":{parsed.password}"
+            userinfo += "@"
+        new_netloc = f"{userinfo}{ipv4}:{port}"
+        new_dsn = urlunparse(parsed._replace(netloc=new_netloc))
+        if "sslmode" not in new_dsn:
+            sep = "&" if "?" in new_dsn else "?"
+            new_dsn += f"{sep}sslmode=require"
+        return new_dsn
+    except Exception:
+        return dsn
+
+
 class PostgresConnection:
     def __init__(self, dsn):
         self.backend = "postgres"
-        self._connection = psycopg.connect(dsn, row_factory=dict_row)
+        self._connection = psycopg.connect(_force_ipv4_dsn(dsn), row_factory=dict_row)
 
     def execute(self, query, params=None):
         params = () if params is None else params
