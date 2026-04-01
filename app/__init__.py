@@ -30,6 +30,9 @@ def create_app(test_config=None):
     app.register_blueprint(admin_bp)
     app.register_blueprint(coach_bp)
 
+    from app.logging import init_logging
+    init_logging(app)
+
     with app.app_context():
         from app.seeds import init_db
         init_db()
