@@ -811,6 +811,13 @@
       return;
     }
 
+    var savedValues = {};
+    els.skillInputs.querySelectorAll("input[name]").forEach(function (input) {
+      if (input.value) {
+        savedValues[input.name] = input.value;
+      }
+    });
+
     els.skillInputs.innerHTML = state.data.skills.map(function (skill) {
       return [
         "<label>",
@@ -820,6 +827,13 @@
         "</label>"
       ].join("");
     }).join("");
+
+    Object.keys(savedValues).forEach(function (name) {
+      var input = els.skillInputs.querySelector('input[name="' + name + '"]');
+      if (input) {
+        input.value = savedValues[name];
+      }
+    });
   }
 
   function handleFormInvalid(event) {
