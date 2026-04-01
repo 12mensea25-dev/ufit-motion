@@ -45,7 +45,11 @@ self.addEventListener("fetch", (event) => {
         return response;
       })
       .catch(() =>
-        caches.match(event.request).then((cachedResponse) => cachedResponse || (shouldCache ? caches.match("/") : null))
+        caches.match(event.request).then((cachedResponse) => {
+          if (cachedResponse) return cachedResponse;
+          if (shouldCache) return caches.match("/").then((r) => r || new Response("Offline", { status: 503, statusText: "Service Unavailable" }));
+          return new Response("Offline", { status: 503, statusText: "Service Unavailable" });
+        })
       )
   );
 });

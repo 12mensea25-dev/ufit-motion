@@ -35,6 +35,10 @@ def create_app(test_config=None):
 
     with app.app_context():
         from app.seeds import init_db
-        init_db()
+        import logging
+        try:
+            init_db()
+        except Exception as exc:
+            logging.getLogger("ufit").error("init_db failed: %s", exc, exc_info=True)
 
     return app
