@@ -1,4 +1,5 @@
 import os
+import re
 import subprocess
 import tempfile
 from flask import Blueprint, jsonify, request, current_app
@@ -24,6 +25,14 @@ def create_session():
     engagement_rating = data.get("engagementRating")
     coach_note = str(data.get("coachNote", "")).strip() or None
     results = data.get("results", [])
+
+    if engagement_rating is not None:
+        try:
+            engagement_rating = float(engagement_rating)
+        except (TypeError, ValueError):
+            return jsonify({"error": "Engagement rating must be a number."}), 400
+        if not (1.0 <= engagement_rating <= 5.0):
+            return jsonify({"error": "Engagement rating must be between 1 and 5."}), 400
 
     if not school_id or not grade_id or not session_date:
         return jsonify({"error": "School, grade, and date are required."}), 400
@@ -84,6 +93,11 @@ def create_eod_report():
     support_needed = str(data.get("supportNeeded", "")).strip() or None
     classes_completed = int(data.get("classesCompleted", 0))
 
+    if not re.match(r"^\d{4}-\d{2}-\d{2}$", report_date):
+        return jsonify({"error": "Date must be in YYYY-MM-DD format."}), 400
+    if classes_completed < 0:
+        return jsonify({"error": "Classes completed cannot be negative."}), 400
+
     if not school_id or not report_date or not summary or not celebrations or not follow_up_needed:
         return jsonify({"error": "School, date, summary, celebrations, and follow-up are required."}), 400
 
@@ -131,6 +145,9 @@ def create_incident():
     incident_date = str(data.get("date", "")).strip()
     title = str(data.get("title", "")).strip()
     details = str(data.get("details", "")).strip()
+
+    if not re.match(r"^\d{4}-\d{2}-\d{2}$", incident_date):
+        return jsonify({"error": "Date must be in YYYY-MM-DD format."}), 400
 
     if not school_id or not incident_date or not title or not details:
         return jsonify({"error": "School, date, title, and details are required."}), 400
