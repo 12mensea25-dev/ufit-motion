@@ -10,7 +10,7 @@ coach_bp = Blueprint("coach", __name__)
 
 
 def _school_scope_for_coach(user):
-    return user.get("school_id")
+    return dict(user).get("school_id")
 
 
 @coach_bp.route("/api/sessions", methods=["POST"])

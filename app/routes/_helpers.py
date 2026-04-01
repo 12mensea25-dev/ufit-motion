@@ -38,12 +38,13 @@ def serialize_grade(row):
 
 
 def serialize_skill(row):
+    d = dict(row)
     return {
-        "id": row["id"],
-        "name": row["name"],
-        "abbreviation": row.get("abbreviation"),
-        "unit": row["unit"],
-        "betterDirection": row["better_direction"],
+        "id": d["id"],
+        "name": d["name"],
+        "abbreviation": d.get("abbreviation"),
+        "unit": d["unit"],
+        "betterDirection": d["better_direction"],
     }
 
 
@@ -239,7 +240,7 @@ def build_performance_rows(connection, school_id=None):
 def bootstrap_payload(user):
     connection = get_db()
     try:
-        school_id = user.get("school_id") if user["role"] == "coach" else None
+        school_id = dict(user).get("school_id") if user["role"] == "coach" else None
         sessions = fetch_sessions(connection, school_id=school_id,
                                   created_by_id=user["id"] if user["role"] == "coach" else None)
         eod_reports = fetch_eod_reports(connection, school_id=school_id,
