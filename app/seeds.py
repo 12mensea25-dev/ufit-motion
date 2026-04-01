@@ -261,7 +261,7 @@ def _ensure_seed_accounts(connection):
             """INSERT INTO users (role, username, name, email, password_hash, school_id, email_verified)
                VALUES (?, ?, ?, ?, ?, ?, 1)""",
             (user["role"], user["username"], user["name"], user["email"],
-             generate_password_hash(user["password"]), school_id),
+             generate_password_hash(user["password"], method="pbkdf2:sha256"), school_id),
         )
 
 

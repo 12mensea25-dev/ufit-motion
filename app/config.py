@@ -4,6 +4,7 @@ import os
 class Config:
     JSON_SORT_KEYS = False
     EXPECTED_EOD_SUBMISSIONS = 20
+    _db_path_override = None
 
     @property
     def SECRET_KEY(self):
@@ -19,8 +20,14 @@ class Config:
 
     @property
     def DB_PATH(self):
+        if self._db_path_override is not None:
+            return self._db_path_override
         base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         return os.environ.get("UFIT_DB_PATH", os.path.join(base, "ufit_motion.db"))
+
+    @DB_PATH.setter
+    def DB_PATH(self, value):
+        self._db_path_override = value
 
     @property
     def OCR_SCRIPT_PATH(self):
