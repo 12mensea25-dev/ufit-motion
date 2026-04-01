@@ -29,34 +29,47 @@ class QueryResult:
         return self._rows
 
 
-def _force_ipv4_dsn(dsn):
-    """Resolve hostname to IPv4 to avoid hosts that only have IPv6 reachability."""
-    try:
-        parsed = urlparse(dsn)
-        hostname = parsed.hostname
-        ipv4_results = socket.getaddrinfo(hostname, None, socket.AF_INET)
-        ipv4 = ipv4_results[0][4][0]
-        port = parsed.port or 5432
-        userinfo = ""
-        if parsed.username:
-            userinfo = parsed.username
-            if parsed.password:
-                userinfo += f":{parsed.password}"
-            userinfo += "@"
-        new_netloc = f"{userinfo}{ipv4}:{port}"
-        new_dsn = urlunparse(parsed._replace(netloc=new_netloc))
-        if "sslmode" not in new_dsn:
-            sep = "&" if "?" in new_dsn else "?"
-            new_dsn += f"{sep}sslmode=require"
-        return new_dsn
-    except Exception:
-        return dsn
+def _supabase_pooler_dsn(dsn):
+    """
+    Convert a Supabase direct connection URL to a Session Pooler URL.
+    Pooler endpoints are IPv4-reachable; direct endpoints resolve to IPv6 on some hosts.
+    """
+    parsed = urlparse(dsn)
+    hostname = parsed.hostname or ""
+    parts = hostname.split(".")
+    # Only applies to URLs like db.{ref}.supabase.co
+    if not (len(parts) >= 4 and parts[0] == "db" and "supabase" in parts):
+        return None
+    project_ref = parts[1]
+    password = parsed.password or ""
+    # Try pooler regions in order of likelihood
+    for region in ("us-east-1", "us-west-1", "us-west-2", "eu-west-1",
+                   "eu-central-1", "ap-southeast-1", "ap-northeast-1"):
+        pooler_host = f"aws-0-{region}.pooler.supabase.com"
+        try:
+            socket.getaddrinfo(pooler_host, 6543, socket.AF_INET)
+            user = f"postgres.{project_ref}"
+            new_netloc = f"{user}:{password}@{pooler_host}:6543"
+            new_dsn = urlunparse(parsed._replace(netloc=new_netloc))
+            if "sslmode" not in new_dsn:
+                new_dsn += "?sslmode=require"
+            return new_dsn
+        except OSError:
+            continue
+    return None
 
 
 class PostgresConnection:
     def __init__(self, dsn):
         self.backend = "postgres"
-        self._connection = psycopg.connect(_force_ipv4_dsn(dsn), row_factory=dict_row)
+        pooler = _supabase_pooler_dsn(dsn)
+        try:
+            self._connection = psycopg.connect(pooler or dsn, row_factory=dict_row)
+        except Exception:
+            if pooler:
+                self._connection = psycopg.connect(dsn, row_factory=dict_row)
+            else:
+                raise
 
     def execute(self, query, params=None):
         params = () if params is None else params
