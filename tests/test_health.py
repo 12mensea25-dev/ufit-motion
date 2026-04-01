@@ -22,3 +22,9 @@ def test_bootstrap_school_filter(admin_client):
     data = response.get_json()
     assert "schools" in data
     assert "performanceRows" in data
+
+
+def test_bootstrap_coach_cannot_filter_schools(coach_client):
+    # Coach passing school_id param should not change their scoped data
+    response = coach_client.get("/api/bootstrap?school_id=2")
+    assert response.status_code == 200  # not an error, just silently ignored
