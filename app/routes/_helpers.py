@@ -237,10 +237,13 @@ def build_performance_rows(connection, school_id=None):
     return rows
 
 
-def bootstrap_payload(user):
+def bootstrap_payload(user, admin_school_filter=None):
     connection = get_db()
     try:
-        school_id = dict(user).get("school_id") if user["role"] == "coach" else None
+        if user["role"] == "coach":
+            school_id = dict(user).get("school_id")
+        else:
+            school_id = admin_school_filter  # None means all schools, int means filter
         sessions = fetch_sessions(connection, school_id=school_id,
                                   created_by_id=user["id"] if user["role"] == "coach" else None)
         eod_reports = fetch_eod_reports(connection, school_id=school_id,

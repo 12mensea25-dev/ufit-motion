@@ -14,3 +14,11 @@ def test_setup_status_returns_needs_setup_false(client):
     response = client.get("/api/setup-status")
     assert response.status_code == 200
     assert response.get_json()["needsSetup"] is False
+
+
+def test_bootstrap_school_filter(admin_client):
+    response = admin_client.get("/api/bootstrap?school_id=1")
+    assert response.status_code == 200
+    data = response.get_json()
+    assert "schools" in data
+    assert "performanceRows" in data
