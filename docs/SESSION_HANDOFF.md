@@ -30,8 +30,13 @@ UfitMotion is a staff-facing PE operations app for a school district. Flask + va
 
 **Railway env vars already set:**
 - `UFIT_SECRET_KEY` = `2dd6a7f37cd0e3f9001e0b1498452785f9af0ee6d192d1623fcad0c4351c7727`
-- `DATABASE_URL` = `postgresql://postgres:f11Wn95E7ALQiKYd@db.dmtrcxyvycgnjwcphmhe.supabase.co:5432/postgres`
 - `APP_ENV` = `production`
+
+**⚠️ CRITICAL — NOT YET SET:**
+- `DATABASE_URL` = `postgresql://postgres:f11Wn95E7ALQiKYd@db.dmtrcxyvycgnjwcphmhe.supabase.co:5432/postgres`
+
+This env var must be added in the Railway dashboard (Service → Variables tab) or all coach data
+is saved to ephemeral SQLite and wiped on every deploy. Until it is set, the app runs on SQLite.
 
 ---
 
@@ -59,6 +64,7 @@ ufit-motion/
 ├── static/
 │   ├── app.js            # Full SPA frontend (vanilla JS, 4272 lines)
 │   ├── styles.css
+│   ├── score-sheet.html  # Printable PE class score sheet (at /static/score-sheet.html)
 │   └── ...
 ├── templates/index.html
 ├── tests/
@@ -83,21 +89,41 @@ python3 -m pytest tests/ -v
 
 ---
 
-## What Was Improved (Beyond Original Codex Build)
+## What Was Fixed This Session
 
-1. **`performanceRows` key fix** — bootstrap now returns correct key for JS dashboard
-2. **School filter security** — coaches cannot use `?school_id=` to see other schools' data
-3. **Structured request logging** — `app/logging.py` logs every request as JSON
-4. **Input validation** — engagement rating enforced 1–5, dates must be YYYY-MM-DD
+1. **Skill score inputs wiped on 15-second refresh** — `renderSkillInputs()` was rebuilding
+   `innerHTML` on every background poll, destroying typed values. Fixed in `static/app.js`:
+   now saves/restores input values around the DOM rebuild.
+
+2. **Bootstrap 500 on live app** — Was a transient crash during Railway deployment restarts
+   (~30 second window where the app is restarting after a new push). Not a code bug.
+   Added/removed traceback capture during debugging; final code is clean.
+
+3. **DATABASE_URL not set** — Root cause of all data persistence issues. Confirmed via
+   `/api/debug-db` probe (now removed). App runs on SQLite when DATABASE_URL is missing;
+   SQLite lives on Railway's ephemeral container filesystem and is wiped on every deploy.
+
+4. **Score sheet** — Added printable HTML score sheet at `static/score-sheet.html`.
+   Accessible at `/static/score-sheet.html` on the live URL.
 
 ---
 
 ## Known Issues / To Fix Next
 
-1. **Change default passwords** — `admin123` and `coach123` are live on a public URL
-2. **Email alerts** — incident alert shows in dashboard but email delivery not configured (SMTP settings panel exists in admin but not wired to send)
-3. **Bootstrap performance** — loads all data at once; needs pagination at scale
-4. **OCR on Railway** — Swift binary (`scripts/vision_ocr`) won't run on Railway's Linux container; needs a cloud OCR alternative (e.g. Google Vision API) for production score sheet import
+1. **⚠️ Set DATABASE_URL in Railway** — #1 priority. Without it all data is lost on deploy.
+   Go to Railway project → Service → Variables → add `DATABASE_URL` with the Supabase URL above.
+
+2. **Change default passwords** — `admin123` and `coach123` are live on a public URL
+
+3. **Email alerts** — incident alert shows in dashboard but email delivery not configured
+   (SMTP settings panel exists in admin but not wired to send)
+
+4. **Bootstrap performance** — loads all data at once; needs pagination at scale
+
+5. **OCR on Railway** — Swift binary (`scripts/vision_ocr`) won't run on Railway's Linux
+   container; needs a cloud OCR alternative (e.g. Google Vision API)
+
+6. **Add password change flow** for coaches/admins
 
 ---
 
@@ -108,7 +134,6 @@ Submission document saved at: `/Users/jahleel/Downloads/UFIT_Submission.html`
 
 **Still needed:**
 - Loom walkthrough video (required by UFIT, not yet recorded)
-- Email to: admin@ufitmotion.local (or wherever UFIT says to submit)
 
 Walkthrough should cover:
 1. Admin portal login
@@ -136,11 +161,12 @@ Open: http://127.0.0.1:5000
 
 ## Next Steps (Prioritized)
 
-1. Change default passwords on live app
-2. Record Loom walkthrough and submit to UFIT
-3. Wire email alerts for incidents (SMTP already has a settings panel)
-4. Add password change flow for coaches/admins
-5. Pagination on bootstrap endpoint
-6. Mobile-responsive layout improvements
-7. Coach-to-admin messaging on incidents
-8. Weekly performance digest emails to admins
+1. Set DATABASE_URL in Railway (see above — critical)
+2. Change default passwords on live app
+3. Record Loom walkthrough and submit to UFIT
+4. Wire email alerts for incidents (SMTP already has a settings panel)
+5. Add password change flow for coaches/admins
+6. Pagination on bootstrap endpoint
+7. Mobile-responsive layout improvements
+8. Coach-to-admin messaging on incidents
+9. Weekly performance digest emails to admins
