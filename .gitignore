@@ -1,0 +1,14 @@
+.env
+*.db
+*.db-journal
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+.venv/
+venv/
+dist/
+*.egg-info/
+Ufit Motion.app/
+*.command
+cookies.txt

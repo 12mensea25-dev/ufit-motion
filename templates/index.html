@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b3d91">
+  <title>Ufit Motion</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="{{ url_for('static', filename='icon.svg') }}" type="image/svg+xml">
+  <link rel="manifest" href="{{ url_for('manifest') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <div class="bg-orb orb-a"></div>
+  <div class="bg-orb orb-b"></div>
+  <div class="bg-grid"></div>
+
+  <section id="auth-shell" class="auth-shell">
+    <article class="auth-showcase">
+      <div class="brand-lockup">
+        <div class="brand-mark">U</div>
+        <div>
+          <p class="eyebrow">Ufit Technologies</p>
+          <h1>Ufit Motion</h1>
+        </div>
+      </div>
+      <p class="hero-copy">
+        A polished PE performance app for coaches and admins. Track class data, compare schools, monitor engagement, and manage incident alerts in one staff dashboard.
+      </p>
+      <div class="showcase-grid">
+        <div class="showcase-card">
+          <p class="section-tag">Built For Launch</p>
+          <h2>Simple enough to demo fast</h2>
+          <p>Clear app navigation, role-based sign-in, and one place for school setup, coach data, reporting, and alerts.</p>
+        </div>
+        <div class="showcase-card accent">
+          <p class="section-tag">Included now</p>
+          <ul class="feature-list">
+            <li>Admin and coach login</li>
+            <li>School filter dashboard</li>
+            <li>Coach performance scoring</li>
+            <li>Incident alert banners</li>
+          </ul>
+        </div>
+      </div>
+      <div class="device-card">
+        <div class="device-top">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <div class="device-body">
+          <div class="device-row">
+            <div class="device-metric">
+              <p>Coach performance snapshot</p>
+              <strong>Lincoln staff trending up</strong>
+            </div>
+            <div class="device-chip">Installable App</div>
+          </div>
+          <div class="mini-bars">
+            <div class="mini-bar"><span style="width: 78%"></span></div>
+            <div class="mini-bar"><span style="width: 64%"></span></div>
+            <div class="mini-bar"><span style="width: 86%"></span></div>
+          </div>
+          <div class="device-note">
+            <p>Admins can filter by school, review coach submissions, and mark incident alerts as seen as they come in.</p>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="auth-panel">
+      <p class="eyebrow">Secure Entry</p>
+      <h2 id="auth-title">Sign into the app</h2>
+      <p id="auth-description" class="panel-copy">
+        Admin and coach logins open the full staff workspace for reporting, school setup, score entry, and incident tracking.
+      </p>
+
+      <div id="auth-entry-stage" class="auth-entry-stage">
+        <button id="entry-admin-btn" type="button" class="entry-card">
+          <span class="entry-tag">Admin Portal</span>
+          <strong>Admin</strong>
+          <span>Sign in to manage schools, district reporting, coach performance, and incident alerts.</span>
+        </button>
+        <button id="entry-coach-btn" type="button" class="entry-card">
+          <span class="entry-tag">Coach Portal</span>
+          <strong>Coach</strong>
+          <span>Sign in to capture PE data, upload score sheets, save class sessions, and report incidents.</span>
+        </button>
+      </div>
+
+      <div id="auth-role-switch" class="auth-role-switch hidden" aria-label="Choose sign in type">
+        <button type="button" class="auth-role-btn active" data-auth-mode="admin">Admin</button>
+        <button type="button" class="auth-role-btn" data-auth-mode="coach">Coach</button>
+      </div>
+
+      <button id="auth-home-btn" type="button" class="ghost-btn hidden">Back to Portals</button>
+
+      <div id="auth-action-switch" class="auth-action-switch" aria-label="Choose auth action">
+        <button type="button" class="auth-action-btn active" data-auth-action="login">Sign In</button>
+        <button type="button" class="auth-action-btn" data-auth-action="register">Create Account</button>
+      </div>
+
+      <p id="auth-helper" class="form-hint"></p>
+
+      <form id="setup-form" class="stack-form hidden">
+        <label>
+          Username
+          <input id="setup-username" name="setupUsername" type="text" autocomplete="username" required>
+        </label>
+        <label>
+          Admin name
+          <input id="setup-name" name="setupName" type="text" autocomplete="name" required>
+        </label>
+        <label>
+          Admin email
+          <input id="setup-email" name="setupEmail" type="email" autocomplete="username" required>
+        </label>
+        <label>
+          Password
+          <input id="setup-password" name="setupPassword" type="password" autocomplete="new-password" required>
+        </label>
+        <button type="submit" class="primary-btn">Create Admin Account</button>
+        <p id="setup-error" class="login-error" hidden></p>
+      </form>
+
+      <form id="login-form" class="stack-form">
+        <label>
+          Username or email
+          <input id="login-identifier" name="loginIdentifier" type="text" autocomplete="username" required>
+        </label>
+        <label>
+          Password
+          <input id="login-password" name="loginPassword" type="password" autocomplete="current-password" required>
+        </label>
+        <button id="login-submit-btn" type="submit" class="primary-btn">Enter Ufit Motion</button>
+        <p id="login-error" class="login-error" hidden></p>
+      </form>
+
+      <form id="register-form" class="stack-form hidden">
+        <div id="register-role-wrap">
+          <label>
+            Staff account type
+            <select id="register-role" name="registerRole">
+              <option value="coach">Coach</option>
+              <option value="admin">Admin</option>
+            </select>
+          </label>
+        </div>
+        <label>
+          Name
+          <input id="register-name" name="registerName" type="text" autocomplete="name" required>
+        </label>
+        <label>
+          Username
+          <input id="register-username" name="registerUsername" type="text" autocomplete="username" required>
+        </label>
+        <label>
+          Email
+          <input id="register-email" name="registerEmail" type="email" autocomplete="username" required>
+        </label>
+        <label>
+          Password
+          <input id="register-password" name="registerPassword" type="password" autocomplete="new-password" required>
+        </label>
+        <div id="register-staff-school-wrap" class="hidden">
+          <label>
+            School
+            <select id="register-staff-school" name="registerStaffSchool"></select>
+          </label>
+        </div>
+        <div id="register-family-fields" class="inline-fields hidden">
+          <label>
+            School
+            <select id="register-school" name="registerSchool"></select>
+          </label>
+          <label>
+            Grade
+            <select id="register-grade" name="registerGrade"></select>
+          </label>
+        </div>
+        <button id="register-submit-btn" type="submit" class="primary-btn">Create Account</button>
+        <p class="form-hint">Account verification happens right after signup in this same panel so access stays secure from the start.</p>
+        <p id="register-error" class="login-error" hidden></p>
+      </form>
+
+      <form id="verify-form" class="stack-form hidden">
+        <label>
+          Email
+          <input id="verify-email" name="verifyEmail" type="email" autocomplete="username" required>
+        </label>
+        <label>
+          Verification code
+          <input id="verify-code" name="verifyCode" type="text" inputmode="numeric" maxlength="6" placeholder="123456" required>
+        </label>
+        <div class="inline-actions">
+          <button id="verify-submit-btn" type="submit" class="primary-btn">Verify and Enter App</button>
+          <button id="resend-verification-btn" type="button" class="ghost-btn">Resend Code</button>
+          <button id="verify-back-btn" type="button" class="ghost-btn">Back</button>
+        </div>
+        <p id="verify-delivery" class="form-hint"></p>
+        <p id="verify-error" class="login-error" hidden></p>
+      </form>
+    </article>
+  </section>
+
+  <div id="app-shell" class="app-shell hidden">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-mark small">U</div>
+        <div>
+          <h2>Ufit Motion</h2>
+          <p class="panel-copy">PE progress operating system</p>
+        </div>
+      </div>
+
+      <div id="sidebar-role-pill" class="role-pill"></div>
+
+      <nav class="sidebar-nav" aria-label="App navigation">
+        <button type="button" class="nav-btn active" data-view="overview" data-roles="admin,coach">Overview</button>
+        <button type="button" class="nav-btn" data-view="reports" data-roles="admin">Reports</button>
+        <button type="button" class="nav-btn" data-view="setup" data-roles="admin">Setup</button>
+        <button type="button" class="nav-btn" data-view="capture" data-roles="coach">Capture</button>
+        <button type="button" class="nav-btn" data-view="activity" data-roles="admin,coach">Activity</button>
+        <button type="button" class="nav-btn" data-view="incidents" data-roles="admin,coach">Incidents</button>
+      </nav>
+
+      <div class="sidebar-note">
+        <p class="section-tag">Install As App</p>
+        <p class="panel-copy">Use your browser menu to add this to the dock or home screen for an app-style presentation.</p>
+      </div>
+
+      <div class="sidebar-note">
+        <p class="section-tag">Signed In</p>
+        <div id="active-user-summary" class="active-user-summary"></div>
+        <p class="panel-copy switch-hint">Use Switch Account in the top bar to move between admin and coach views quickly.</p>
+      </div>
+
+      <button id="logout-btn" class="ghost-btn full-width">Log Out</button>
+    </aside>
+
+    <div class="workspace">
+      <header class="topbar">
+        <div>
+          <p id="topbar-eyebrow" class="eyebrow">Admin workspace</p>
+          <h1 id="topbar-title" class="topbar-title">PE Progress Command Center</h1>
+          <p id="topbar-subtitle" class="panel-copy">Track PE data, compare schools, score coach performance, and monitor incident alerts.</p>
+        </div>
+        <div class="topbar-actions">
+          <button id="refresh-data-btn" class="ghost-btn">Refresh Data</button>
+          <button id="switch-account-btn" class="ghost-btn switch-account-btn">Switch Account</button>
+          <button id="export-app-btn" class="ghost-btn">Export App Package</button>
+          <button id="print-report-btn" class="ghost-btn">Print Report</button>
+          <button id="install-app-btn" class="primary-btn hidden">Install App</button>
+        </div>
+      </header>
+
+      <main class="workspace-scroll">
+        <div id="status-banner" class="status-banner hidden"></div>
+        <div id="alert-banners" class="alert-feed admin-only"></div>
+
+        <section id="overview-view" class="view active" data-view-name="overview">
+          <div class="grid app-overview-grid">
+            <article class="panel wide-panel accent-panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="section-tag">Overview</p>
+                  <h2>Today at a glance</h2>
+                </div>
+              </div>
+              <div id="stats-grid" class="stats-grid"></div>
+              <div class="section-divider">
+                <div class="panel-heading compact-heading">
+                  <div>
+                    <p class="section-tag">Next step</p>
+                    <h2>Quick actions</h2>
+                  </div>
+                </div>
+                <div id="quick-actions" class="action-grid"></div>
+              </div>
+            </article>
+
+            <article class="panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="section-tag">Highlights</p>
+                  <h2>What needs attention now</h2>
+                </div>
+              </div>
+              <div id="insights-list" class="list-block"></div>
+            </article>
+
+            <article class="panel admin-only">
+              <div class="panel-heading">
+                <div>
+                  <p class="section-tag">Admin Control</p>
+                  <h2>Admin essentials</h2>
+                </div>
+              </div>
+              <div class="list-block">
+                <div class="list-item">
+                  <h3>School filter with live reporting</h3>
+                  <p>Admins can filter reports, engagement, incidents, and performance views by school.</p>
+                </div>
+                <div class="list-item">
+                  <h3>Coach scorecards</h3>
+                  <p>Performance scoring blends engagement averages with end-of-day report completion.</p>
+                </div>
+                <div class="list-item">
+                  <h3>Incident alert system</h3>
+                  <p>Unread incident banners appear for admins immediately and can be marked as seen after review.</p>
+                </div>
+              </div>
+            </article>
+
+            <article class="panel admin-only">
+              <div class="panel-heading">
+                <div>
+                  <p class="section-tag">Latest Coach Handoff</p>
+                  <h2>Newest reports and incidents</h2>
+                </div>
+              </div>
+              <div id="admin-handoff-feed" class="list-block"></div>
+            </article>
+
+            <article class="panel coach-only">
+              <div class="panel-heading">
+                <div>
+                  <p class="section-tag">Coach Workflow</p>
+                  <h2>Simple daily flow</h2>
+                </div>
+              </div>
+              <div class="list-block">
+                <div class="list-item">
+                  <h3>1. Capture the score sheet</h3>
+                  <p>Upload a photo or open the live camera to read handwritten timings and scores.</p>
+                </div>
+                <div class="list-item">
+                  <h3>2. Save class data</h3>
+                  <p>Review the imported values, add engagement, and save the PE session in one place.</p>
+                </div>
+                <div class="list-item">
+                  <h3>3. Submit the end-of-day report</h3>
+                  <p>Finish the day with one EOD report so admin can review it and your completion score updates correctly.</p>
+                </div>
+                <div class="list-item">
+                  <h3>4. Report incidents fast</h3>
+                  <p>Submit any incident from the same app and notify admin right away.</p>
+                </div>
+              </div>
+            </article>
+
+            <article class="panel coach-only">
+              <div class="panel-heading">
+                <div>
+                  <p class="section-tag">Score Visibility</p>
+                  <h2>How your score reaches admin</h2>
+                </div>
+              </div>
+              <div id="coach-score-overview" class="summary-card score-flow-card"></div>
+            </article>
+          </div>
+        </section>
+
+        <section id="reports-view" class="view admin-only" data-view-name="reports">
+          <article class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="section-tag">Admin Filter</p>
+                <h2>School-wide dashboard view</h2>
+              </div>
+            </div>
+            <div class="toolbar admin-filter-toolbar">
+              <label>
+                Filter by school
+                <select id="admin-school-filter"></select>
+              </label>
+            </div>
+            <div id="engagement-summary" class="summary-card"></div>
+          </article>
+
+          <div class="grid two-up">
+            <article class="panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="section-tag">Reports</p>
+                  <h2>School performance summary</h2>
+                </div>
+              </div>
+              <div class="toolbar">
+                <label>
+                  School
+                  <select id="report-school-select"></select>
+                </label>
+                <label>
+                  Grade
+                  <select id="report-grade-select"></select>
+                </label>
+              </div>
+              <div id="report-summary" class="summary-card"></div>
+              <div id="school-skill-chart" class="mini-chart"></div>
+            </article>
+
+            <article class="panel accent-panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="section-tag">Benchmarking</p>
+                  <h2>District comparison signals</h2>
+                </div>
+              </div>
+              <div id="benchmark-feed" class="list-block"></div>
+            </article>
+          </div>
+
+          <article class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="section-tag">Coach Performance</p>
+                <h2>Engagement and completion scorecard</h2>
+              </div>
+            </div>
+            <div id="performance-explainer" class="summary-card performance-explainer"></div>
+            <div id="performance-table" class="table-shell"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="section-tag">End-of-Day Reports</p>
+                <h2>Coach report review</h2>
+              </div>
+            </div>
+            <div class="toolbar">
+              <label>
+                Coach
+                <select id="eod-coach-filter"></select>
+              </label>
+              <label>
+                Date window
+                <select id="eod-window-filter">
+                  <option value="7">Last 7 days</option>
+                  <option value="30" selected>Last 30 days</option>
+                  <option value="all">All time</option>
+                </select>
+              </label>
+            </div>
+            <div id="eod-report-summary" class="summary-card"></div>
+            <div id="admin-eod-reports-list" class="list-block"></div>
+          </article>
+        </section>
+
+        <section id="setup-view" class="view admin-only" data-view-name="setup">
+          <div class="grid two-up">
+            <article class="panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="section-tag">Manage data</p>
+                  <h2>Schools, districts, and grades</h2>
+                </div>
+              </div>
+              <form id="school-form" class="stack-form">
+                <label>
+                  School name
+                  <input id="school-name" name="schoolName" type="text" placeholder="Lincoln Elementary" required>
+                </label>
+                <label>
+                  District
+                  <input id="school-district" name="districtName" type="text" placeholder="North County District" required>
+                </label>
+                <p class="form-hint">Each school can be tied to a district so reports can compare schools inside the same district view.</p>
+                <button type="submit" class="primary-btn">Add School</button>
+              </form>
+              <div id="schools-list" class="list-block"></div>
+
+              <form id="grade-form" class="stack-form section-divider">
+                <label>
+                  Grade label
+                  <input id="grade-name" name="gradeName" type="text" placeholder="7th Grade" required>
+                </label>
+                <label>
+                  Grade order
+                  <input id="grade-order" name="gradeOrder" type="number" min="1" step="1" placeholder="7" required>
+                </label>
+                <button type="submit" class="primary-btn">Add Grade</button>
+              </form>
+              <div id="grades-list" class="list-block"></div>
+            </article>
+
+            <article class="panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="section-tag">Configuration</p>
+                  <h2>Skills and access management</h2>
+                </div>
+              </div>
+              <form id="skill-form" class="stack-form">
+                <input id="skill-edit-id" name="skillEditId" type="hidden">
+                <label>
+                  Skill name
+                  <input id="skill-name" name="skillName" type="text" placeholder="Vertical Jump" required>
+                </label>
+                <label>
+                  Skill abbreviation
+                  <input id="skill-abbreviation" name="skillAbbreviation" type="text" placeholder="VJ" maxlength="20" required>
+                </label>
+                <div class="inline-fields">
+                  <label>
+                    Unit
+                    <select id="skill-unit" name="skillUnit">
+                      <option value="seconds">Seconds</option>
+                      <option value="milliseconds">Milliseconds</option>
+                      <option value="minutes">Minutes</option>
+                      <option value="inches">Inches</option>
+                      <option value="feet">Feet</option>
+                      <option value="yards">Yards</option>
+                      <option value="meters">Meters</option>
+                      <option value="repetitions">Repetitions</option>
+                      <option value="count">Count</option>
+                      <option value="score">Score</option>
+                      <option value="percentage">Percentage</option>
+                      <option value="points">Points</option>
+                      <option value="laps">Laps</option>
+                      <option value="bpm">Beats Per Minute</option>
+                      <option value="pounds">Pounds</option>
+                      <option value="kilograms">Kilograms</option>
+                      <option value="custom">Custom Unit</option>
+                    </select>
+                  </label>
+                  <label>
+                    Better result
+                    <select id="skill-direction" name="skillDirection">
+                      <option value="lower">Lower is better</option>
+                      <option value="higher">Higher is better</option>
+                    </select>
+                  </label>
+                </div>
+                <label id="skill-unit-custom-wrap" class="hidden">
+                  Custom unit name
+                  <input id="skill-unit-custom" name="skillUnitCustom" type="text" placeholder="targets hit">
+                </label>
+                <p class="form-hint">Use whatever metric fits the skill: seconds, reps, laps, percentage, points, recovery heart rate, distance, weight, or a custom unit.</p>
+                <div class="inline-actions">
+                  <button id="skill-submit-btn" type="submit" class="primary-btn">Add Skill</button>
+                  <button id="skill-cancel-btn" type="button" class="ghost-btn hidden">Cancel Edit</button>
+                </div>
+              </form>
+              <div id="skills-list" class="list-block"></div>
+
+              <form id="user-form" class="stack-form section-divider">
+                <div class="inline-fields">
+                  <label>
+                    Login type
+                    <select id="user-role" name="userRole">
+                      <option value="coach">Coach</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  </label>
+                  <label>
+                    Display name
+                    <input id="user-name" name="userName" type="text" placeholder="Coach Alyssa" required>
+                  </label>
+                </div>
+                <div class="inline-fields">
+                  <label>
+                    Username
+                    <input id="user-username" name="userUsername" type="text" placeholder="coachalyssa" required>
+                  </label>
+                  <label>
+                    Email
+                    <input id="user-email" name="userEmail" type="email" placeholder="coach@school.org" required>
+                  </label>
+                  <label>
+                    Password
+                    <input id="user-password" name="userPassword" type="text" placeholder="coach123" required>
+                  </label>
+                </div>
+                <div class="inline-fields">
+                  <label id="user-school-wrap">
+                    School access
+                    <select id="user-school" name="userSchool"></select>
+                  </label>
+                  <label id="user-grade-wrap">
+                    Grade access
+                    <select id="user-grade" name="userGrade"></select>
+                  </label>
+                </div>
+                <p class="form-hint">Every new login created here requires verification before the first sign-in.</p>
+                <button type="submit" class="primary-btn">Create Login</button>
+              </form>
+              <div id="users-list" class="list-block"></div>
+            </article>
+          </div>
+        </section>
+
+        <section id="capture-view" class="view coach-only" data-view-name="capture">
+          <div class="grid two-up">
+            <article class="panel accent-panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="section-tag">Coach Assist</p>
+                  <h2>Fastest way to log a PE class</h2>
+                </div>
+              </div>
+              <div class="list-block">
+                <div class="list-item">
+                  <h3>Use abbreviations your staff already writes</h3>
+                  <p>Skills like `10Y`, `VJ`, `TA`, `LD`, and `505` can be recognized from photos automatically.</p>
+                </div>
+                <div class="list-item">
+                  <h3>Capture in the field</h3>
+                  <p>Take the picture live in the app or upload from notes, clipboard photos, or a phone camera roll.</p>
+                </div>
+                <div class="list-item">
+                  <h3>Review before saving</h3>
+                  <p>The app prefills scores so coaches can check values before locking in the class data.</p>
+                </div>
+              </div>
+            </article>
+
+            <article class="panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="section-tag">Coach workflow</p>
+                  <h2>Enter PE class results</h2>
+                </div>
+              </div>
+              <form id="session-form" class="stack-form">
+                <div class="inline-fields triple">
+                  <label>
+                    School
+                    <select id="session-school" name="sessionSchool" required></select>
+                  </label>
+                  <label>
+                    Grade
+                    <select id="session-grade" name="sessionGrade" required></select>
+                  </label>
+                  <label>
+                    Date
+                    <input id="session-date" name="sessionDate" type="date" required>
+                  </label>
+                </div>
+                <label>
+                  Coach / class note
+                  <input id="session-coach" name="sessionCoach" type="text" placeholder="Coach Alyssa - windy field day">
+                </label>
+                <label>
+                  Engagement rating
+                  <select id="session-engagement" name="sessionEngagement" required>
+                    <option value="">Select a rating</option>
+                    <option value="1">1 - Needs support</option>
+                    <option value="2">2 - Inconsistent</option>
+                    <option value="3">3 - Solid</option>
+                    <option value="4">4 - Strong</option>
+                    <option value="5">5 - Excellent</option>
+                  </select>
+                </label>
+                <div id="skill-inputs" class="skill-inputs"></div>
+                <p class="form-hint">Only enter the metrics you tested today. You do not need to fill every score box to save a class.</p>
+                <button type="submit" class="primary-btn">Save Class Data</button>
+              </form>
+              <div class="section-divider">
+                <div class="panel-heading compact-heading">
+                  <div>
+                    <p class="section-tag">Admin score impact</p>
+                    <h2>What this class changes</h2>
+                  </div>
+                </div>
+                <div id="coach-score-impact" class="summary-card score-flow-card"></div>
+              </div>
+            </article>
+          </div>
+
+          <article class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="section-tag">Photo import</p>
+                <h2>Read handwritten notes or score photos</h2>
+              </div>
+            </div>
+            <form id="ocr-form" class="stack-form">
+              <div class="inline-fields triple">
+                <label>
+                  School
+                  <select id="ocr-school" name="ocrSchool" required></select>
+                </label>
+                <label>
+                  Grade
+                  <select id="ocr-grade" name="ocrGrade" required></select>
+                </label>
+                <label>
+                  Date
+                  <input id="ocr-date" name="ocrDate" type="date" required>
+                </label>
+              </div>
+              <label>
+                Coach / class note
+                <input id="ocr-note" name="ocrNote" type="text" placeholder="Coach Alyssa - scores captured from field clipboard">
+              </label>
+              <label>
+                Upload score sheet photo
+                <input id="ocr-image" name="ocrImage" type="file" accept="image/*" capture="environment">
+              </label>
+              <div class="inline-actions">
+                <button id="ocr-open-camera-btn" type="button" class="ghost-btn">Open Camera</button>
+                <button id="ocr-capture-btn" type="button" class="ghost-btn hidden">Take Photo</button>
+                <button id="ocr-stop-camera-btn" type="button" class="ghost-btn hidden">Close Camera</button>
+              </div>
+              <div id="ocr-camera-panel" class="camera-panel hidden">
+                <video id="ocr-camera-video" class="camera-video hidden" autoplay playsinline muted></video>
+                <canvas id="ocr-camera-canvas" class="hidden"></canvas>
+                <img id="ocr-captured-preview" class="camera-preview hidden" alt="Captured score sheet preview">
+              </div>
+              <p id="ocr-source-hint" class="form-hint">Use Upload for an existing image, or Open Camera to take the score sheet photo live in the app.</p>
+              <p class="form-hint">Best results come from one skill per line, like `VJ 12.5` or `10Y 3.214`. The app matches abbreviations to the skill library automatically.</p>
+              <button type="submit" class="primary-btn">Read Photo and Prefill Scores</button>
+              <p id="ocr-error" class="login-error" hidden></p>
+            </form>
+            <div id="ocr-preview" class="list-block"></div>
+          </article>
+        </section>
+
+        <section id="activity-view" class="view" data-view-name="activity">
+          <div class="grid two-up">
+            <article class="panel coach-only">
+              <div class="panel-heading">
+                <div>
+                  <p class="section-tag">End-of-Day Reporting</p>
+                  <h2>Submit the daily coach report</h2>
+                </div>
+              </div>
+              <form id="eod-report-form" class="stack-form">
+                <div class="inline-fields triple">
+                  <label>
+                    School
+                    <select id="eod-school" name="eodSchool" required></select>
+                  </label>
+                  <label>
+                    Report date
+                    <input id="eod-date" name="eodDate" type="date" required>
+                  </label>
+                  <label>
+                    Classes completed
+                    <input id="eod-classes" name="eodClasses" type="text" inputmode="numeric" placeholder="4" required>
+                  </label>
+                </div>
+                <label>
+                  Daily summary
+                  <textarea id="eod-summary" name="eodSummary" rows="3" placeholder="Summarize how the day went, what classes were covered, and what stood out." required></textarea>
+                </label>
+                <label>
+                  Celebrations
+                  <textarea id="eod-celebrations" name="eodCelebrations" rows="3" placeholder="Call out strong effort, growth, or a class that stood out in a positive way." required></textarea>
+                </label>
+                <label>
+                  Follow-up needed
+                  <textarea id="eod-follow-up" name="eodFollowUp" rows="3" placeholder="Note what should be reinforced next class or what needs attention tomorrow." required></textarea>
+                </label>
+                <label>
+                  Admin support or supply note
+                  <textarea id="eod-support" name="eodSupport" rows="2" placeholder="Optional: equipment, scheduling, or support request for admin."></textarea>
+                </label>
+                <button type="submit" class="primary-btn">Submit End-of-Day Report</button>
+              </form>
+                <div class="section-divider">
+                  <div class="panel-heading compact-heading">
+                    <div>
+                      <p class="section-tag">Score impact</p>
+                    <h2>What this end-of-day report changes</h2>
+                    </div>
+                  </div>
+                  <div id="eod-score-impact" class="summary-card score-flow-card"></div>
+              </div>
+            </article>
+
+            <article class="panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="section-tag">Report activity</p>
+                  <h2>Recent end-of-day reports</h2>
+                </div>
+              </div>
+              <div id="coach-eod-reports-list" class="list-block"></div>
+            </article>
+          </div>
+
+          <div class="grid two-up">
+            <article class="panel coach-only">
+              <div class="panel-heading">
+                <div>
+                  <p class="section-tag">Coach updates</p>
+                  <h2>Log a program note</h2>
+                </div>
+              </div>
+              <form id="comment-form" class="stack-form">
+                <div class="inline-fields triple">
+                  <label>
+                    School
+                    <select id="comment-school" name="commentSchool" required></select>
+                  </label>
+                  <label>
+                    Grade
+                    <select id="comment-grade" name="commentGrade" required></select>
+                  </label>
+                  <label>
+                    Date
+                    <input id="comment-date" name="commentDate" type="date" required>
+                  </label>
+                </div>
+                <label>
+                  Update title
+                  <input id="comment-title" name="commentTitle" type="text" placeholder="Third grade acceleration is improving" required>
+                </label>
+                <label>
+                  What happened in class
+                  <textarea id="comment-body" name="commentBody" rows="4" placeholder="Students improved on starts and body control, but lateral balance still needs attention." required></textarea>
+                </label>
+                <label>
+                  Recommended next focus
+                  <textarea id="comment-home" name="commentHome" rows="3" placeholder="Next PE block should reinforce side shuffles, balance, and quick deceleration patterns." required></textarea>
+                </label>
+                <button type="submit" class="primary-btn">Save Program Update</button>
+              </form>
+            </article>
+
+            <article class="panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="section-tag">Recent activity</p>
+                  <h2>Recorded PE sessions</h2>
+                </div>
+              </div>
+              <div id="sessions-list" class="list-block"></div>
+            </article>
+          </div>
+
+          <article class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="section-tag">Staff feed</p>
+                <h2>Coach program updates</h2>
+              </div>
+            </div>
+            <div id="comments-list" class="list-block"></div>
+          </article>
+        </section>
+
+        <section id="incidents-view" class="view" data-view-name="incidents">
+          <article class="panel admin-only">
+            <div class="panel-heading">
+              <div>
+                <p class="section-tag">Incident Review</p>
+                <h2>Admin incident summary</h2>
+              </div>
+            </div>
+            <div id="incident-review-summary" class="summary-card"></div>
+          </article>
+
+          <div class="grid two-up">
+            <article class="panel coach-only">
+              <div class="panel-heading">
+                <div>
+                  <p class="section-tag">Incident submission</p>
+                  <h2>Send an immediate admin alert</h2>
+                </div>
+              </div>
+              <form id="incident-form" class="stack-form">
+                <div class="inline-fields">
+                  <label>
+                    School
+                    <select id="incident-school" name="incidentSchool" required></select>
+                  </label>
+                  <label>
+                    Date
+                    <input id="incident-date" name="incidentDate" type="date" required>
+                  </label>
+                </div>
+                <label>
+                  Incident title
+                  <input id="incident-title" name="incidentTitle" type="text" placeholder="Playground collision during sprint relay" required>
+                </label>
+                <label>
+                  What happened
+                  <textarea id="incident-details" name="incidentDetails" rows="4" placeholder="Describe the incident, who was involved, and any follow-up steps." required></textarea>
+                </label>
+                <button type="submit" class="primary-btn">Submit Incident Alert</button>
+              </form>
+            </article>
+
+            <article class="panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="section-tag">Incident activity</p>
+                  <h2>Logged incident reports</h2>
+                </div>
+              </div>
+              <div id="incidents-list" class="list-block"></div>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <template id="metric-card-template">
+    <div class="stat-card">
+      <p class="stat-label"></p>
+      <p class="stat-value"></p>
+      <p class="stat-detail"></p>
+    </div>
+  </template>
+
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
