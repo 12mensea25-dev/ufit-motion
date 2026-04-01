@@ -36,12 +36,9 @@ def create_app(test_config=None):
     with app.app_context():
         from app.seeds import init_db
         import logging
-        import traceback as _tb
         try:
             init_db()
-            app.config["INIT_DB_ERROR"] = None
         except Exception as exc:
-            app.config["INIT_DB_ERROR"] = _tb.format_exc()
             logging.getLogger("ufit").error("init_db failed: %s", exc, exc_info=True)
 
     return app

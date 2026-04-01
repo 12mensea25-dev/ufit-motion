@@ -7,10 +7,6 @@ shared_bp = Blueprint("shared", __name__)
 
 @shared_bp.route("/api/health")
 def health():
-    from flask import current_app
-    err = current_app.config.get("INIT_DB_ERROR")
-    if err:
-        return jsonify({"ok": True, "init_db_error": err})
     return jsonify({"ok": True})
 
 
@@ -54,16 +50,12 @@ def public_options():
 def bootstrap():
     from flask import request
     from app.routes._helpers import bootstrap_payload
-    import traceback
-    try:
-        user = current_user()
-        school_id = None
-        if dict(user).get("role") == "admin":
-            school_id_param = request.args.get("school_id")
-            school_id = int(school_id_param) if school_id_param and school_id_param.isdigit() else None
-        return jsonify(bootstrap_payload(user, admin_school_filter=school_id))
-    except Exception as e:
-        return jsonify({"error": str(e), "trace": traceback.format_exc()}), 500
+    user = current_user()
+    school_id = None
+    if dict(user).get("role") == "admin":
+        school_id_param = request.args.get("school_id")
+        school_id = int(school_id_param) if school_id_param and school_id_param.isdigit() else None
+    return jsonify(bootstrap_payload(user, admin_school_filter=school_id))
 
 
 @shared_bp.route("/api/alerts/dismiss/<int:alert_id>", methods=["POST"])
