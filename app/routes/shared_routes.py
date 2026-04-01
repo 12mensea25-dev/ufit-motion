@@ -7,6 +7,10 @@ shared_bp = Blueprint("shared", __name__)
 
 @shared_bp.route("/api/health")
 def health():
+    from flask import current_app
+    err = current_app.config.get("INIT_DB_ERROR")
+    if err:
+        return jsonify({"ok": True, "init_db_error": err})
     return jsonify({"ok": True})
 
 
