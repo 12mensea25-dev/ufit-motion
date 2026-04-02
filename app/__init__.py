@@ -33,6 +33,13 @@ def create_app(test_config=None):
     from app.logging import init_logging
     init_logging(app)
 
+    @app.teardown_appcontext
+    def _close_pg_conn(exc):
+        from flask import g
+        pg_conn = g.pop("_pg_conn", None)
+        if pg_conn is not None:
+            pg_conn.close()
+
     with app.app_context():
         from app.seeds import init_db
         import logging

@@ -16,6 +16,9 @@ POSTGRES_ID_TABLES = {
     "session_results", "eod_reports", "comments", "incidents", "alerts",
 }
 
+# Cached after first successful connection so we don't re-probe regions every request.
+_working_dsn = None
+
 
 class QueryResult:
     def __init__(self, rows=None, lastrowid=None):
@@ -54,16 +57,22 @@ def _supabase_pooler_dsns(dsn):
 
 class PostgresConnection:
     def __init__(self, dsn):
+        global _working_dsn
         self.backend = "postgres"
+        if _working_dsn is not None:
+            self._connection = psycopg.connect(_working_dsn, row_factory=dict_row)
+            return
         last_exc = None
         for candidate in _supabase_pooler_dsns(dsn):
             try:
                 self._connection = psycopg.connect(candidate, row_factory=dict_row)
+                _working_dsn = candidate
                 return
             except Exception as e:
                 last_exc = e
         try:
             self._connection = psycopg.connect(dsn, row_factory=dict_row)
+            _working_dsn = dsn
         except Exception as e:
             raise last_exc or e
 
@@ -107,9 +116,43 @@ class PostgresConnection:
         return match.group(1) if match else None
 
 
+class _BorrowedConnection:
+    """
+    A thin wrapper returned to callers within a request.
+    Delegates all DB operations to the shared per-request connection.
+    close() is a no-op — the real connection is closed by the request teardown.
+    """
+    def __init__(self, conn):
+        self._conn = conn
+        self.backend = getattr(conn, "backend", "sqlite")
+
+    def execute(self, query, params=None):
+        return self._conn.execute(query, params)
+
+    def executescript(self, script):
+        return self._conn.executescript(script)
+
+    def commit(self):
+        return self._conn.commit()
+
+    def rollback(self):
+        return self._conn.rollback()
+
+    def close(self):
+        pass  # Managed by request teardown
+
+
 def get_db(config=None):
-    """Return a database connection. Caller must call .close() when done."""
-    from flask import current_app
+    """
+    Return a database connection for the current request.
+
+    For Postgres: returns a borrowed handle to the per-request shared connection
+    stored on Flask's g. The real connection is opened once on first call and
+    closed by the teardown registered in create_app().
+
+    For SQLite: returns a standard connection (callers must still close it).
+    """
+    from flask import current_app, g
     cfg = config or current_app.config["UFIT_CONFIG"]
 
     if cfg.DATABASE_URL:
@@ -117,7 +160,9 @@ def get_db(config=None):
             raise RuntimeError(
                 "Postgres support requires psycopg. Run: pip install -r requirements.txt"
             )
-        return PostgresConnection(cfg.DATABASE_URL)
+        if not hasattr(g, "_pg_conn"):
+            g._pg_conn = PostgresConnection(cfg.DATABASE_URL)
+        return _BorrowedConnection(g._pg_conn)
 
     connection = sqlite3.connect(cfg.DB_PATH)
     connection.row_factory = sqlite3.Row
