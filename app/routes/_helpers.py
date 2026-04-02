@@ -148,7 +148,25 @@ def fetch_eod_reports(connection, school_id=None, created_by_id=None):
             ORDER BY eod_reports.report_date DESC""",
         values,
     ).fetchall()
-    return [dict(r) for r in rows]
+    return [_serialize_eod_report(dict(r)) for r in rows]
+
+
+def _serialize_eod_report(d):
+    return {
+        "id": d["id"],
+        "schoolId": d["school_id"],
+        "schoolName": d.get("school_name"),
+        "date": d["report_date"],
+        "classesCompleted": d["classes_completed"],
+        "summary": d["summary"],
+        "celebrations": d["celebrations"],
+        "followUpNeeded": d["follow_up_needed"],
+        "supportNeeded": d.get("support_needed"),
+        "createdBy": d.get("created_by"),
+        "createdById": d.get("created_by"),
+        "createdByName": d.get("coach_name"),
+        "createdAt": d.get("created_at"),
+    }
 
 
 def fetch_incidents(connection, school_id=None, created_by_id=None):
@@ -161,15 +179,39 @@ def fetch_incidents(connection, school_id=None, created_by_id=None):
         values.append(created_by_id)
     where = "WHERE " + " AND ".join(clauses) if clauses else ""
     rows = connection.execute(
-        f"""SELECT incidents.*, users.name AS coach_name, schools.name AS school_name
+        f"""SELECT incidents.*, users.name AS coach_name, schools.name AS school_name,
+                   ack_user.name AS acknowledged_by_name
             FROM incidents
             LEFT JOIN users ON users.id = incidents.created_by
             LEFT JOIN schools ON schools.id = incidents.school_id
+            LEFT JOIN users AS ack_user ON ack_user.id = incidents.acknowledged_by
             {where}
             ORDER BY incidents.incident_date DESC""",
         values,
     ).fetchall()
-    return [dict(r) for r in rows]
+    return [_serialize_incident(dict(r)) for r in rows]
+
+
+def _serialize_incident(d):
+    return {
+        "id": d["id"],
+        "schoolId": d["school_id"],
+        "schoolName": d.get("school_name"),
+        "date": d["incident_date"],
+        "title": d["title"],
+        "details": d["details"],
+        "adminStatus": d.get("admin_status", "new"),
+        "adminResponse": d.get("admin_response"),
+        "followUpNote": d.get("follow_up_note"),
+        "followUpDate": d.get("follow_up_date"),
+        "acknowledgedAt": d.get("acknowledged_at"),
+        "acknowledgedById": d.get("acknowledged_by"),
+        "acknowledgedByName": d.get("acknowledged_by_name"),
+        "createdBy": d.get("created_by"),
+        "createdById": d.get("created_by"),
+        "createdByName": d.get("coach_name"),
+        "createdAt": d.get("created_at"),
+    }
 
 
 def fetch_alerts(connection, school_id=None):
@@ -180,7 +222,8 @@ def fetch_alerts(connection, school_id=None):
         values.append(school_id)
     rows = connection.execute(
         f"""SELECT alerts.id, alerts.incident_id, alerts.created_at,
-                   incidents.title, incidents.school_id, incidents.created_by,
+                   incidents.title, incidents.incident_date, incidents.school_id,
+                   incidents.created_by,
                    users.name AS coach_name, schools.name AS school_name
             FROM alerts
             JOIN incidents ON incidents.id = alerts.incident_id
@@ -190,7 +233,20 @@ def fetch_alerts(connection, school_id=None):
             ORDER BY alerts.created_at DESC""",
         values,
     ).fetchall()
-    return [dict(r) for r in rows]
+    return [_serialize_alert(dict(r)) for r in rows]
+
+
+def _serialize_alert(d):
+    return {
+        "id": d["id"],
+        "incidentId": d["incident_id"],
+        "schoolId": d["school_id"],
+        "schoolName": d.get("school_name"),
+        "title": d["title"],
+        "incidentDate": d.get("incident_date"),
+        "coachName": d.get("coach_name"),
+        "createdAt": d.get("created_at"),
+    }
 
 
 def build_performance_rows(connection, school_id=None):

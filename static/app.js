@@ -166,6 +166,8 @@
     els.eodWindowFilter = document.getElementById("eod-window-filter");
     els.eodReportSummary = document.getElementById("eod-report-summary");
     els.adminEodReportsList = document.getElementById("admin-eod-reports-list");
+    els.incidentCoachFilter = document.getElementById("incident-coach-filter");
+    els.incidentWindowFilter = document.getElementById("incident-window-filter");
     els.incidentReviewSummary = document.getElementById("incident-review-summary");
     els.schoolForm = document.getElementById("school-form");
     els.schoolsList = document.getElementById("schools-list");
@@ -341,6 +343,12 @@
     }
     if (els.eodWindowFilter) {
       els.eodWindowFilter.addEventListener("change", renderAdminEodReports);
+    }
+    if (els.incidentCoachFilter) {
+      els.incidentCoachFilter.addEventListener("change", function () { renderIncidentReviewSummary(); renderIncidentsList(); });
+    }
+    if (els.incidentWindowFilter) {
+      els.incidentWindowFilter.addEventListener("change", function () { renderIncidentReviewSummary(); renderIncidentsList(); });
     }
     if (els.parentSchoolSelect) {
       els.parentSchoolSelect.addEventListener("change", renderParentPortal);
@@ -1354,8 +1362,14 @@
 
   function getDashboardIncidents() {
     var selectedSchoolId = getSelectedAdminSchoolId();
+    var selectedCoachId = els.incidentCoachFilter && els.incidentCoachFilter.value ? parseInt(els.incidentCoachFilter.value, 10) : null;
+    var selectedWindow = els.incidentWindowFilter ? els.incidentWindowFilter.value : "all";
+    var cutoff = selectedWindow === "all" ? "" : buildIsoDateOffset(0 - parseInt(selectedWindow, 10));
     return state.data.incidents.filter(function (incident) {
-      return !selectedSchoolId || incident.schoolId === selectedSchoolId;
+      if (selectedSchoolId && incident.schoolId !== selectedSchoolId) return false;
+      if (selectedCoachId && incident.createdById !== selectedCoachId) return false;
+      if (cutoff && String(incident.date || "") < cutoff) return false;
+      return true;
     });
   }
 
@@ -1445,6 +1459,10 @@
 
     var selectedSchoolId = getSelectedAdminSchoolId();
     var scopeLabel = selectedSchoolId ? getSchoolById(selectedSchoolId).name : "All schools";
+    var coachLabel = els.incidentCoachFilter && els.incidentCoachFilter.value
+      ? getCoachNameById(parseInt(els.incidentCoachFilter.value, 10))
+      : "All coaches";
+    var windowLabel = els.incidentWindowFilter ? els.incidentWindowFilter.options[els.incidentWindowFilter.selectedIndex].text : "All time";
     var incidents = getDashboardIncidents();
     var unreadAlerts = (state.data.alerts || []).filter(function (alert) {
       return !selectedSchoolId || alert.schoolId === selectedSchoolId;
@@ -1457,12 +1475,12 @@
     }).length;
 
     els.incidentReviewSummary.innerHTML = [
-      "<h3>" + escapeHtml(scopeLabel) + "</h3>",
-      "<p><strong>" + escapeHtml(String(incidents.length)) + "</strong> incident report" + (incidents.length === 1 ? "" : "s") + " are currently in this admin view.</p>",
+      "<h3>" + escapeHtml(scopeLabel) + " • " + escapeHtml(coachLabel) + "</h3>",
+      "<p><strong>" + escapeHtml(String(incidents.length)) + "</strong> incident report" + (incidents.length === 1 ? "" : "s") + " match the current filters.</p>",
+      "<p><strong>Date window:</strong> " + escapeHtml(windowLabel) + "</p>",
       "<p><strong>Unread alerts:</strong> " + escapeHtml(String(unreadAlerts)) + " still need admin acknowledgement.</p>",
       "<p><strong>Follow-up planned:</strong> " + escapeHtml(String(followUpCount)) + " incident" + (followUpCount === 1 ? "" : "s") + " are waiting on the next action.</p>",
-      "<p><strong>Closed:</strong> " + escapeHtml(String(closedCount)) + " incident" + (closedCount === 1 ? "" : "s") + " have been fully resolved.</p>",
-      "<p><strong>Filter note:</strong> the school filter set in Reports stays active here, so incident review always matches the rest of the admin dashboard.</p>"
+      "<p><strong>Closed:</strong> " + escapeHtml(String(closedCount)) + " incident" + (closedCount === 1 ? "" : "s") + " have been fully resolved.</p>"
     ].join("");
   }
 
@@ -1887,7 +1905,8 @@
         report.schoolName || getSchoolById(report.schoolId).name,
         formatLongDate(report.date),
         report.createdByName ? "By " + report.createdByName : null,
-        report.classesCompleted ? report.classesCompleted + " class" + (report.classesCompleted === 1 ? "" : "es") : null
+        report.classesCompleted ? report.classesCompleted + " class" + (report.classesCompleted === 1 ? "" : "es") : null,
+        report.createdAt ? "Submitted " + formatDateTime(report.createdAt) : null
       ].filter(Boolean).join(" • ");
       var badgeGroup = isFreshCoachSubmission(report.createdAt, report.date)
         ? '<div class="pill-row"><span class="pill fresh-pill">New Submission Received</span></div>'
@@ -1922,12 +1941,13 @@
       return;
     }
 
-    els.incidentsList.innerHTML = incidents.slice(0, 10).map(function (incident) {
+    els.incidentsList.innerHTML = incidents.map(function (incident) {
       var school = getSchoolById(incident.schoolId);
       var meta = [
         school.name,
         formatLongDate(incident.date),
-        incident.createdByName ? "Submitted by " + incident.createdByName : null
+        incident.createdByName ? "Submitted by " + incident.createdByName : null,
+        incident.createdAt ? "Logged " + formatDateTime(incident.createdAt) : null
       ].filter(Boolean).join(" • ");
       var statusLabel = getIncidentStatusLabel(incident.adminStatus);
       var statusClass = getIncidentStatusClass(incident.adminStatus);
@@ -3136,6 +3156,7 @@
     setOptions(els.incidentSchool, state.data.schools);
     setAdminSchoolOptions();
     setEodCoachOptions();
+    setIncidentCoachOptions();
   }
 
   function setAdminSchoolOptions() {
@@ -3155,6 +3176,25 @@
       return String(school.id) === current;
     }) ? current : "";
     state.selectedAdminSchoolId = els.adminSchoolFilter.value;
+  }
+
+  function setIncidentCoachOptions() {
+    if (!els.incidentCoachFilter) {
+      return;
+    }
+    var current = els.incidentCoachFilter.value || "";
+    var selectedSchoolId = getSelectedAdminSchoolId();
+    var coaches = state.data.users.filter(function (user) {
+      return user.role === "coach" && (!selectedSchoolId || user.schoolId === selectedSchoolId);
+    });
+    var options = ['<option value="">All coaches</option>'].concat(
+      coaches.map(function (coach) {
+        return '<option value="' + escapeHtml(String(coach.id)) + '">' + escapeHtml(coach.name) + "</option>";
+      })
+    );
+    els.incidentCoachFilter.innerHTML = options.join("");
+    var hasCurrent = coaches.some(function (coach) { return String(coach.id) === current; });
+    els.incidentCoachFilter.value = hasCurrent ? current : "";
   }
 
   function setEodCoachOptions() {

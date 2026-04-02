@@ -854,6 +854,20 @@
                 <h2>Admin incident summary</h2>
               </div>
             </div>
+            <div class="toolbar">
+              <label>
+                Coach
+                <select id="incident-coach-filter"></select>
+              </label>
+              <label>
+                Date window
+                <select id="incident-window-filter">
+                  <option value="all" selected>All time</option>
+                  <option value="30">Last 30 days</option>
+                  <option value="7">Last 7 days</option>
+                </select>
+              </label>
+            </div>
             <div id="incident-review-summary" class="summary-card"></div>
           </article>
 
